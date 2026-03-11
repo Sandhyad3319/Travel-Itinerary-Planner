@@ -1,0 +1,830 @@
+{% extends 'planner/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- AI Assistant Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <div class="card assistant-card shadow-lg border-0">
+                <div class="card-header bg-gradient-primary text-white text-center py-4">
+                    <div class="assistant-avatar mb-3">
+                        <div class="avatar-circle">
+                            <i class="bi bi-robot h2"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-2">🤖 Travel AI Assistant</h4>
+                    <p class="mb-0 opacity-75">I'll help you plan the perfect trip!</p>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Voice Instructions -->
+                    <div class="voice-section mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">
+                                <i class="bi bi-mic me-2"></i>Voice Instructions
+                            </h6>
+                            <button class="btn btn-sm btn-outline-primary" id="toggleVoice">
+                                <i class="bi bi-volume-up"></i> Enable
+                            </button>
+                        </div>
+                        <div class="voice-instructions">
+                            <div class="instruction-item mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <small>Tell me your destination</small>
+                            </div>
+                            <div class="instruction-item mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <small>Choose your travel dates</small>
+                            </div>
+                            <div class="instruction-item mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <small>Select your budget range</small>
+                            </div>
+                            <div class="instruction-item">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <small>Pick your travel style</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Suggestions -->
+                    <div class="suggestions-section">
+                        <h6 class="mb-3">
+                            <i class="bi bi-lightbulb me-2"></i>Quick Suggestions
+                        </h6>
+                        
+                        <!-- Popular Destinations -->
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">🌍 Popular Destinations</label>
+                            <div class="destination-chips">
+                                {% for dest in popular_destinations %}
+                                <span class="destination-chip" data-destination="{{ dest.name }}">
+                                    {{ dest.emoji }} {{ dest.name }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Trip Type Suggestions -->
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">🎯 Trip Styles</label>
+                            <div class="trip-type-chips">
+                                <span class="trip-chip" data-trip-type="romantic">💖 Romantic Getaway</span>
+                                <span class="trip-chip" data-trip-type="adventure">🏔️ Adventure</span>
+                                <span class="trip-chip" data-trip-type="cultural">🏛️ Cultural</span>
+                                <span class="trip-chip" data-trip-type="relaxation">🏖️ Relaxation</span>
+                                <span class="trip-chip" data-trip-type="family">👨‍👩‍👧‍👦 Family</span>
+                            </div>
+                        </div>
+
+                        <!-- Budget Suggestions -->
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">💰 Budget Options</label>
+                            <div class="budget-chips">
+                                <span class="budget-chip" data-budget="budget">💸 Budget Friendly</span>
+                                <span class="budget-chip" data-budget="moderate">💎 Moderate</span>
+                                <span class="budget-chip" data-budget="luxury">✨ Luxury</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Tips -->
+                    <div class="ai-tips mt-4 p-3 bg-light rounded">
+                        <h6 class="mb-2">
+                            <i class="bi bi-stars me-2 text-warning"></i>AI Tips
+                        </h6>
+                        <div class="tip-content">
+                            <p class="small mb-2">💡 <strong>Pro Tip:</strong> Be specific about your preferences for better AI recommendations!</p>
+                            <p class="small mb-0">🎯 <strong>Remember:</strong> The more details you provide, the more personalized your itinerary will be.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="card progress-card mt-4 shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="bi bi-graph-up me-2"></i>Creation Progress
+                    </h6>
+                    <div class="progress-steps">
+                        <div class="progress-step completed">
+                            <div class="step-icon">1</div>
+                            <div class="step-text">
+                                <small>Destination</small>
+                            </div>
+                        </div>
+                        <div class="progress-step active">
+                            <div class="step-icon">2</div>
+                            <div class="step-text">
+                                <small>Details</small>
+                            </div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-icon">3</div>
+                            <div class="step-text">
+                                <small>Preferences</small>
+                            </div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-icon">4</div>
+                            <div class="step-text">
+                                <small>Generate</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient-primary text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-magic me-2"></i>Create Your Dream Trip
+                    </h3>
+                    <p class="mb-0 mt-2 opacity-75">Let AI craft your perfect travel experience ✨</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate id="itineraryForm">
+                        {% csrf_token %}
+                        
+                        <!-- Title -->
+                        <div class="form-section mb-4">
+                            <div class="section-header mb-3">
+                                <h5 class="text-primary">
+                                    <i class="bi bi-pencil-square me-2"></i>Trip Title
+                                </h5>
+                                <p class="text-muted small mb-0">Give your adventure a memorable name</p>
+                            </div>
+                            <div class="mb-3">
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.title.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Destination -->
+                        <div class="form-section mb-4">
+                            <div class="section-header mb-3">
+                                <h5 class="text-primary">
+                                    <i class="bi bi-geo-alt me-2"></i>Destination
+                                </h5>
+                                <p class="text-muted small mb-0">Where would you like to go? 🌎</p>
+                            </div>
+                            <div class="mb-3">
+                                {{ form.destination }}
+                                {% if form.destination.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.destination.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Enter your destination (e.g., Paris, France or Tokyo, Japan)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dates -->
+                        <div class="form-section mb-4">
+                            <div class="section-header mb-3">
+                                <h5 class="text-primary">
+                                    <i class="bi bi-calendar-heart me-2"></i>Travel Dates
+                                </h5>
+                                <p class="text-muted small mb-0">When is your adventure? 📅</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                        <i class="bi bi-airplane-takeoff me-1"></i>Start Date
+                                    </label>
+                                    {{ form.start_date }}
+                                    {% if form.start_date.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.start_date.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                                        <i class="bi bi-airplane-landing me-1"></i>End Date
+                                    </label>
+                                    {{ form.end_date }}
+                                    {% if form.end_date.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.end_date.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Budget and Trip Type -->
+                        <div class="form-section mb-4">
+                            <div class="section-header mb-3">
+                                <h5 class="text-primary">
+                                    <i class="bi bi-sliders me-2"></i>Trip Preferences
+                                </h5>
+                                <p class="text-muted small mb-0">Customize your travel style 🎯</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.budget.id_for_label }}" class="form-label">
+                                        <i class="bi bi-coin me-1"></i>Budget
+                                    </label>
+                                    {{ form.budget }}
+                                    {% if form.budget.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.budget.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.trip_type.id_for_label }}" class="form-label">
+                                        <i class="bi bi-heart me-1"></i>Trip Type
+                                    </label>
+                                    {{ form.trip_type }}
+                                    {% if form.trip_type.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.trip_type.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Travelers Section -->
+                        <div class="form-section mb-4">
+                            <div class="section-header mb-3">
+                                <h5 class="text-primary">
+                                    <i class="bi bi-people me-2"></i>Travel Companions
+                                </h5>
+                                <p class="text-muted small mb-0">Who's joining the adventure? 👨‍👩‍👧‍👦</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.travelers.id_for_label }}" class="form-label">
+                                        <i class="bi bi-person me-1"></i>Adult Travelers
+                                    </label>
+                                    {{ form.travelers }}
+                                    {% if form.travelers.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.travelers.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Adults (18+ years)</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.children_count.id_for_label }}" class="form-label">
+                                        <i class="bi bi-emoji-smile me-1"></i>Children
+                                    </label>
+                                    {{ form.children_count }}
+                                    {% if form.children_count.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.children_count.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Children (under 18 years)</div>
+                                </div>
+                            </div>
+
+                            <!-- Children Friendly -->
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    {{ form.children_friendly }}
+                                    <label class="form-check-label" for="{{ form.children_friendly.id_for_label }}">
+                                        <i class="bi bi-check-circle me-1"></i>Include Children-Friendly Activities
+                                    </label>
+                                </div>
+                                {% if form.children_friendly.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.children_friendly.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Recommended when traveling with children</div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Preferences -->
+                        <div class="form-section mb-4">
+                            <div class="section-header mb-3">
+                                <h5 class="text-primary">
+                                    <i class="bi bi-stars me-2"></i>Activity Preferences
+                                </h5>
+                                <p class="text-muted small mb-0">What do you love to do? 🎨</p>
+                            </div>
+                            
+                            <div class="row g-3" id="activityPreferencesContainer">
+                                {% for value, label in form.fields.activity_preferences.choices %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card preference-card h-100" data-activity-value="{{ value }}">
+                                        <div class="card-body p-3 text-center">
+                                            <div class="form-check m-0 d-flex flex-column align-items-center justify-content-center h-100">
+                                                <input class="form-check-input activity-checkbox" type="checkbox" 
+                                                       name="activity_preferences" 
+                                                       value="{{ value }}" 
+                                                       id="pref_{{ forloop.counter }}"
+                                                       {% if value in form.activity_preferences.value %}checked{% endif %}>
+                                                <label class="form-check-label" for="pref_{{ forloop.counter }}">
+                                                    <div class="preference-icon mb-2">
+                                                        <i class="bi 
+                                                            {% if value == 'hiking' %}bi-tree
+                                                            {% elif value == 'beach' %}bi-umbrella
+                                                            {% elif value == 'shopping' %}bi-bag
+                                                            {% elif value == 'sightseeing' %}bi-camera
+                                                            {% elif value == 'food' %}bi-egg-fried
+                                                            {% elif value == 'nightlife' %}bi-moon
+                                                            {% elif value == 'museums' %}bi-building
+                                                            {% elif value == 'sports' %}bi-trophy
+                                                            {% elif value == 'wellness' %}bi-flower1
+                                                            {% elif value == 'wildlife' %}bi-tree-fill
+                                                            {% elif value == 'photography' %}bi-camera2
+                                                            {% elif value == 'local_culture' %}bi-people-fill
+                                                            {% endif %} 
+                                                            h4 text-primary"></i>
+                                                    </div>
+                                                    <small class="fw-medium">{{ label }}</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">
+                                    <span class="badge bg-primary" id="selectedCount">0</span> out of 
+                                    <span class="badge bg-secondary">5</span> activities selected
+                                </small>
+                            </div>
+                            
+                            {% if form.activity_preferences.errors %}
+                                <div class="text-danger small mt-2">
+                                    {% for error in form.activity_preferences.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Special Requirements -->
+                        <div class="form-section mb-4">
+                            <div class="section-header mb-3">
+                                <h5 class="text-primary">
+                                    <i class="bi bi-info-circle me-2"></i>Special Requirements
+                                </h5>
+                                <p class="text-muted small mb-0">Any special needs or preferences? 💫</p>
+                            </div>
+                            <div class="mb-3">
+                                {{ form.special_requirements }}
+                                {% if form.special_requirements.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.special_requirements.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    Any dietary restrictions, accessibility needs, mobility considerations, or other special requirements?
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trip Summary Preview -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3">
+                                    <i class="bi bi-eye me-2"></i>Trip Summary Preview
+                                </h6>
+                                <div class="row small text-muted" id="tripSummary">
+                                    <div class="col-md-6">
+                                        <div><strong>Destination:</strong> <span id="summaryDestination">-</span></div>
+                                        <div><strong>Duration:</strong> <span id="summaryDuration">0 days</span></div>
+                                        <div><strong>Travelers:</strong> <span id="summaryTravelers">0 adults, 0 children</span></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div><strong>Budget:</strong> <span id="summaryBudget">-</span></div>
+                                        <div><strong>Trip Type:</strong> <span id="summaryTripType">-</span></div>
+                                        <div><strong>Activities:</strong> <span id="summaryActivities">0 selected</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg py-3" id="generateButton">
+                                <i class="bi bi-magic me-2"></i>Generate AI Itinerary
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Voice Assistant Modal -->
+<div class="modal fade" id="voiceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-mic me-2"></i>Voice Assistant
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="voice-animation mb-3">
+                    <i class="bi bi-mic-fill text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <p class="mb-3">Speak your travel preferences...</p>
+                <div class="voice-status">
+                    <span class="badge bg-info" id="voiceStatus">Ready to listen</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Enhanced Styling */
+.assistant-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+}
+
+.avatar-circle {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+    font-size: 2rem;
+}
+
+.voice-instructions {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+}
+
+.destination-chips, .trip-type-chips, .budget-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.destination-chip, .trip-chip, .budget-chip {
+    background: white;
+    border: 2px solid #e9ecef;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.destination-chip:hover, .trip-chip:hover, .budget-chip:hover {
+    border-color: #667eea;
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.preference-card {
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+}
+
+.preference-card:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+}
+
+.preference-card.selected {
+    border-color: #667eea;
+    background-color: rgba(102, 126, 234, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.step-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.progress-step.completed .step-icon {
+    background: #28a745;
+    color: white;
+}
+
+.progress-step.active .step-icon {
+    background: #667eea;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.section-header {
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 10px;
+}
+
+.form-section {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+/* Form control enhancements */
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .destination-chips, .trip-type-chips, .budget-chips {
+        justify-content: center;
+    }
+    
+    .progress-steps {
+        flex-wrap: wrap;
+    }
+    
+    .progress-step {
+        flex: 0 0 50%;
+        margin-bottom: 15px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Voice Assistant Functionality
+    const toggleVoiceBtn = document.getElementById('toggleVoice');
+    const voiceModal = new bootstrap.Modal(document.getElementById('voiceModal'));
+    let isListening = false;
+    
+    toggleVoiceBtn.addEventListener('click', function() {
+        voiceModal.show();
+        // Simulate voice recognition (in a real app, you'd use Web Speech API)
+        setTimeout(() => {
+            document.getElementById('voiceStatus').textContent = 'Listening...';
+            document.getElementById('voiceStatus').className = 'badge bg-success';
+        }, 1000);
+    });
+    
+    // Quick Selection Chips
+    const destinationChips = document.querySelectorAll('.destination-chip');
+    const tripChips = document.querySelectorAll('.trip-chip');
+    const budgetChips = document.querySelectorAll('.budget-chip');
+    
+    destinationChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.getElementById('id_destination').value = this.getAttribute('data-destination');
+            updateTripSummary();
+        });
+    });
+    
+    tripChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.getElementById('id_trip_type').value = this.getAttribute('data-trip-type');
+            updateTripSummary();
+        });
+    });
+    
+    budgetChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.getElementById('id_budget').value = this.getAttribute('data-budget');
+            updateTripSummary();
+        });
+    });
+    
+    // Activity Selection
+    let selectedActivities = new Set();
+    const activityCheckboxes = document.querySelectorAll('.activity-checkbox');
+    
+    function initializeSelectedActivities() {
+        const preChecked = document.querySelectorAll('.activity-checkbox:checked');
+        preChecked.forEach(checkbox => {
+            selectedActivities.add(checkbox.value);
+        });
+        updateActivityCounter();
+    }
+    
+    function updateActivityCounter() {
+        const selectedCount = document.getElementById('selectedCount');
+        const summaryActivities = document.getElementById('summaryActivities');
+        const count = selectedActivities.size;
+        
+        selectedCount.textContent = count;
+        summaryActivities.textContent = count + ' selected';
+        
+        if (count >= 5) {
+            selectedCount.className = 'badge bg-warning';
+        } else {
+            selectedCount.className = 'badge bg-primary';
+        }
+    }
+    
+    activityCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                if (selectedActivities.size >= 5) {
+                    this.checked = false;
+                    showToast('Please select no more than 5 activity preferences for the best results.', 'warning');
+                } else {
+                    selectedActivities.add(this.value);
+                    const card = this.closest('.preference-card');
+                    card.classList.add('selected');
+                }
+            } else {
+                selectedActivities.delete(this.value);
+                const card = this.closest('.preference-card');
+                card.classList.remove('selected');
+            }
+            
+            updateActivityCounter();
+            updateTripSummary();
+        });
+    });
+    
+    // Trip Summary
+    function updateTripSummary() {
+        const destination = document.getElementById('id_destination').value || '-';
+        const startDate = document.getElementById('id_start_date').value;
+        const endDate = document.getElementById('id_end_date').value;
+        const travelers = document.getElementById('id_travelers').value || 0;
+        const children = document.getElementById('id_children_count').value || 0;
+        const budget = document.getElementById('id_budget');
+        const tripType = document.getElementById('id_trip_type');
+        
+        let duration = 0;
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        }
+        
+        document.getElementById('summaryDestination').textContent = destination;
+        document.getElementById('summaryDuration').textContent = duration + ' day' + (duration !== 1 ? 's' : '');
+        document.getElementById('summaryTravelers').textContent = travelers + ' adult' + (travelers != 1 ? 's' : '') + ', ' + children + ' child' + (children != 1 ? 'ren' : '');
+        document.getElementById('summaryBudget').textContent = budget.options[budget.selectedIndex]?.text || '-';
+        document.getElementById('summaryTripType').textContent = tripType.options[tripType.selectedIndex]?.text || '-';
+    }
+    
+    // Auto-enable children friendly when children count > 0
+    const childrenCountInput = document.getElementById('id_children_count');
+    const childrenFriendlyCheckbox = document.getElementById('id_children_friendly');
+    
+    childrenCountInput.addEventListener('change', function() {
+        if (this.value > 0 && !childrenFriendlyCheckbox.checked) {
+            childrenFriendlyCheckbox.checked = true;
+            showToast('Children-friendly activities enabled automatically', 'info');
+        }
+    });
+    
+    // Form submission
+    const form = document.getElementById('itineraryForm');
+    const button = document.getElementById('generateButton');
+    
+    form.addEventListener('submit', function() {
+        button.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Generating Your Perfect Itinerary...';
+        button.disabled = true;
+        button.classList.add('disabled');
+    });
+    
+    // Real-time updates
+    const formInputs = form.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+        if (input.name !== 'activity_preferences') {
+            input.addEventListener('change', updateTripSummary);
+            input.addEventListener('input', updateTripSummary);
+        }
+    });
+    
+    // Toast notifications
+    function showToast(message, type = 'info') {
+        const existingToasts = document.querySelectorAll('.custom-toast');
+        existingToasts.forEach(toast => toast.remove());
+        
+        const toast = document.createElement('div');
+        toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+    
+    // Initialize
+    initializeSelectedActivities();
+    updateTripSummary();
+    
+    // Add selected class to pre-checked cards
+    activityCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            const card = checkbox.closest('.preference-card');
+            card.classList.add('selected');
+        }
+    });
+});
+</script>
+{% endblock %}

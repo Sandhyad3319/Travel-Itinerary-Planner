@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+        .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .itinerary-info { background: white; padding: 20px; border-radius: 5px; margin: 15px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✈️ Your Travel Itinerary is Ready!</h1>
+        <p>{{ itinerary.destination }} - {{ itinerary.duration }} days</p>
+    </div>
+    
+    <div class="content">
+        <h2>Hello {{ user.first_name }}!</h2>
+        
+        <p>Your AI-powered travel itinerary for <strong>{{ itinerary.destination }}</strong> has been successfully created! Here are your trip details:</p>
+        
+        <div class="itinerary-info">
+            <h3>📋 Trip Overview</h3>
+            <p><strong>Title:</strong> {{ itinerary.title }}</p>
+            <p><strong>Destination:</strong> {{ itinerary.destination }}</p>
+            <p><strong>Duration:</strong> {{ itinerary.duration }} days</p>
+            <p><strong>Dates:</strong> {{ itinerary.start_date }} to {{ itinerary.end_date }}</p>
+            <p><strong>Travelers:</strong> {{ itinerary.travelers }} people</p>
+            <p><strong>Budget:</strong> {{ itinerary.get_budget_display }}</p>
+            <p><strong>Trip Type:</strong> {{ itinerary.get_trip_type_display }}</p>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="http://127.0.0.1:8000/planner/itinerary/{{ itinerary.id }}/" class="button">View Full Itinerary</a>
+        </div>
+        
+        <p>Your itinerary includes detailed daily activities, cost estimates, location images, and Google Maps links for easy navigation.</p>
+        
+        <p>Happy travels!<br>
+        <strong>The AI Travel Planner Team</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2024 AI Travel Planner. All rights reserved.</p>
+        <p>This email was sent to {{ user.email }}</p>
+    </div>
+</body>
+</html>

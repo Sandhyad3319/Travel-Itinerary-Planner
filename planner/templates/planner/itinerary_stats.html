@@ -1,0 +1,240 @@
+{% extends 'planner/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-graph-up me-2"></i>Travel Statistics
+        </h2>
+        <a href="{% url 'itinerary_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Itineraries
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <div class="feature-icon mx-auto mb-3">
+                        <i class="bi bi-journals"></i>
+                    </div>
+                    <h3 class="text-primary">{{ total_itineraries }}</h3>
+                    <p class="card-text">Total Itineraries</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    <h3 class="text-success">{{ total_days }}</h3>
+                    <p class="card-text">Days Planned</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <h3 class="text-warning">${{ total_cost|floatformat:2 }}</h3>
+                    <p class="card-text">Total Estimated Cost</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <div class="feature-icon mx-auto mb-3" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                        <i class="bi bi-airplane"></i>
+                    </div>
+                    <h3 class="text-info">{{ total_itineraries }}</h3>
+                    <p class="card-text">Travel Plans</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Trip Type Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pie-chart me-2"></i>Trip Type Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if trip_type_stats %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Trip Type</th>
+                                        <th class="text-end">Count</th>
+                                        <th class="text-end">Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in trip_type_stats %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge 
+                                                {% if stat.trip_type == 'adventure' %}bg-danger
+                                                {% elif stat.trip_type == 'cultural' %}bg-warning
+                                                {% elif stat.trip_type == 'relaxation' %}bg-success
+                                                {% elif stat.trip_type == 'romantic' %}bg-pink
+                                                {% else %}bg-primary{% endif %}">
+                                                {{ stat.trip_type|title }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">{{ stat.count }}</td>
+                                        <td class="text-end">
+                                            {{ stat.count|floatformat:0 }}%
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-pie-chart display-4 text-muted mb-3"></i>
+                            <p class="text-muted">No trip type data available yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-currency-dollar me-2"></i>Budget Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if budget_stats %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Budget Level</th>
+                                        <th class="text-end">Count</th>
+                                        <th class="text-end">Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in budget_stats %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge 
+                                                {% if stat.budget == 'budget' %}bg-success
+                                                {% elif stat.budget == 'luxury' %}bg-warning
+                                                {% else %}bg-primary{% endif %}">
+                                                {{ stat.budget|title }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">{{ stat.count }}</td>
+                                        <td class="text-end">
+                                            {{ stat.count|floatformat:0 }}%
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-currency-dollar display-4 text-muted mb-3"></i>
+                            <p class="text-muted">No budget data available yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-month me-2"></i>Monthly Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if monthly_stats %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th class="text-end">Itineraries Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in monthly_stats %}
+                                    <tr>
+                                        <td>
+                                            <i class="bi bi-calendar me-2"></i>
+                                            {{ stat.month }}
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="badge bg-primary rounded-pill">
+                                                {{ stat.count }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-calendar-month display-4 text-muted mb-3"></i>
+                            <p class="text-muted">No monthly activity data available yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5 class="mb-3">Ready for your next adventure?</h5>
+                    <a href="{% url 'create_itinerary' %}" class="btn btn-primary me-2">
+                        <i class="bi bi-plus-circle me-1"></i>Create New Itinerary
+                    </a>
+                    <a href="{% url 'quick_start' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-lightning me-1"></i>Quick Start
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-pink {
+    background-color: #ec4899 !important;
+}
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+        .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .feature { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #667eea; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎉 Welcome to AI Travel Planner!</h1>
+        <p>Your journey to perfect trips starts here</p>
+    </div>
+    
+    <div class="content">
+        <h2>Hello {{ user.first_name }}!</h2>
+        
+        <p>We're thrilled to welcome you to AI Travel Planner! Get ready to discover amazing destinations and create unforgettable travel experiences with the power of artificial intelligence.</p>
+        
+        <div class="feature">
+            <strong>🚀 What you can do now:</strong>
+            <ul>
+                <li>Create personalized AI-powered itineraries</li>
+                <li>Get destination recommendations with images</li>
+                <li>Plan trips based on your budget and preferences</li>
+                <li>Access detailed activity information and maps</li>
+                <li>Use voice commands to plan your trips</li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{{ site_domain }}/planner/create/" class="button">Create Your First Itinerary</a>
+        </div>
+        
+        <p>If you have any questions, feel free to reply to this email.</p>
+        
+        <p>Happy travels!<br>
+        <strong>The AI Travel Planner Team</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2024 AI Travel Planner. All rights reserved.</p>
+        <p>This email was sent to {{ user.email }}</p>
+    </div>
+</body>
+</html>

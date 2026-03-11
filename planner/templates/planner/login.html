@@ -1,0 +1,169 @@
+{% extends 'planner/base.html' %}
+{% load static %}
+
+{% block title %}Login - AI Travel Planner{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login to Your Account
+                    </h3>
+                    <p class="mb-0 mt-2 opacity-75">Use your username and password</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Please enter a correct username and password.
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="bi bi-person me-1"></i>Username or Email
+                            </label>
+                            <input type="text" name="username" class="form-control" id="username" 
+                                   placeholder="Enter your username or email" required
+                                   value="{{ form.username.value|default:'' }}"
+                                   autofocus>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">
+                                <i class="bi bi-lock me-1"></i>Password
+                            </label>
+                            <div class="password-toggle-wrapper">
+                                <input type="password" name="password" class="form-control" id="password" 
+                                       placeholder="Enter your password" required>
+                                <span class="password-toggle-icon" onclick="togglePassword()">👁️</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-2">
+                            <a href="{% url 'password_reset' %}" class="text-decoration-none">
+                                <i class="bi bi-key me-1"></i>Forgot your password?
+                            </a>
+                        </p>
+                        <p class="mb-0">Don't have an account? 
+                            <a href="{% url 'register' %}" class="text-decoration-none fw-bold">Register here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const toggleIcon = document.querySelector('.password-toggle-icon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.textContent = '👁️‍🗨️';
+        toggleIcon.title = 'Hide password';
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.textContent = '👁️';
+        toggleIcon.title = 'Show password';
+    }
+}
+
+// Add loading state to form
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing In...';
+    });
+});
+</script>
+
+<style>
+.password-toggle-wrapper {
+    position: relative;
+    display: block;
+}
+
+.password-toggle-wrapper .form-control {
+    padding-right: 50px !important;
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+    background: white;
+    padding: 5px 8px;
+    border-radius: 4px;
+    z-index: 10;
+    user-select: none;
+    transition: all 0.3s ease;
+}
+
+.password-toggle-icon:hover {
+    background: #f8f9fa;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-radius: 0 !important;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.alert-danger {
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #fc5c7d 0%, #ff7b54 100%);
+    color: white;
+    border-left: 4px solid #dc3545;
+}
+</style>
+{% endblock %}

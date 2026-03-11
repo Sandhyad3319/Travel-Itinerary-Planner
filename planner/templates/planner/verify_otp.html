@@ -1,0 +1,69 @@
+{% extends 'planner/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-shield-check me-2"></i>Verify Your Email
+                    </h3>
+                    <p class="mb-0 mt-2">Enter the OTP sent to your email</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        We sent a 6-digit OTP code to: <strong>{{ email }}</strong>
+                    </div>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.otp_code.id_for_label }}" class="form-label">
+                                <i class="bi bi-key me-1"></i>OTP Code
+                            </label>
+                            {{ form.otp_code }}
+                            {% if form.otp_code.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.otp_code.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Enter the 6-digit code from your email</div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Verify & Create Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="mb-2">
+                            <a href="{% url 'resend_otp' %}" class="text-decoration-none">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Resend OTP
+                            </a>
+                        </p>
+                        <p class="mb-0">
+                            <a href="{% url 'register' %}" class="text-decoration-none">
+                                <i class="bi bi-arrow-left me-1"></i>Back to Registration
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    border-color: #fd7e14;
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+}
+</style>
+{% endblock %}

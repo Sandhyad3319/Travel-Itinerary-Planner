@@ -1,0 +1,252 @@
+{% extends 'planner/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-lightning me-2"></i>Quick Start
+        </h2>
+        <a href="{% url 'create_itinerary' %}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Custom Itinerary
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">Get Started in Minutes!</h4>
+                    <p class="card-text text-muted">
+                        Choose from our popular destinations and trip types to quickly create your perfect itinerary.
+                        Our AI will generate a detailed plan tailored to your preferences.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Destinations -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-globe me-2"></i>Popular Destinations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        {% for destination in popular_destinations %}
+                        <div class="col-md-4 col-lg-3">
+                            <div class="card h-100 destination-card" 
+                                 onclick="location.href='{% url 'create_itinerary' %}?destination={{ destination.name|urlencode }}';"
+                                 style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-6 mb-3">{{ destination.image }}</div>
+                                    <h6 class="card-title">{{ destination.name }}</h6>
+                                    <small class="text-muted">
+                                        {{ destination.itinerary_count }} itineraries
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-4">
+                            <i class="bi bi-globe display-4 text-muted mb-3"></i>
+                            <p class="text-muted">No destinations available yet.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Trip Types -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-heart me-2"></i>Trip Types
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for trip_type in trip_types %}
+                        <div class="col-6">
+                            <div class="card text-center trip-type-card"
+                                 onclick="location.href='{% url 'create_itinerary' %}?trip_type={{ trip_type.0 }}';"
+                                 style="cursor: pointer;">
+                                <div class="card-body py-3">
+                                    <div class="mb-2">
+                                        <i class="bi 
+                                            {% if trip_type.0 == 'adventure' %}bi-tree
+                                            {% elif trip_type.0 == 'cultural' %}bi-building
+                                            {% elif trip_type.0 == 'relaxation' %}bi-umbrella
+                                            {% elif trip_type.0 == 'romantic' %}bi-heart
+                                            {% else %}bi-people{% endif %} 
+                                            h4 text-primary"></i>
+                                    </div>
+                                    <h6 class="card-title mb-0">{{ trip_type.1 }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Options -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-wallet me-2"></i>Budget Options
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for budget in budgets %}
+                        <div class="col-6">
+                            <div class="card text-center budget-card"
+                                 onclick="location.href='{% url 'create_itinerary' %}?budget={{ budget.0 }}';"
+                                 style="cursor: pointer;">
+                                <div class="card-body py-3">
+                                    <div class="mb-2">
+                                        <i class="bi 
+                                            {% if budget.0 == 'budget' %}bi-coin
+                                            {% elif budget.0 == 'luxury' %}bi-gem
+                                            {% else %}bi-star{% endif %} 
+                                            h4 
+                                            {% if budget.0 == 'budget' %}text-success
+                                            {% elif budget.0 == 'luxury' %}text-warning
+                                            {% else %}text-primary{% endif %}"></i>
+                                    </div>
+                                    <h6 class="card-title mb-0">{{ budget.1 }}</h6>
+                                    <small class="text-muted">
+                                        {% if budget.0 == 'budget' %}$ - $$
+                                        {% elif budget.0 == 'luxury' %}$$$$ - $$$$$
+                                        {% else %}$$ - $$${% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="mb-3">
+                        <i class="bi bi-lightbulb me-2"></i>Quick Tips
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <i class="bi bi-check-circle text-success me-3 mt-1"></i>
+                                <div>
+                                    <h6>Choose Your Style</h6>
+                                    <p class="text-muted small">Select a trip type that matches your travel preferences for better AI recommendations.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <i class="bi bi-check-circle text-success me-3 mt-1"></i>
+                                <div>
+                                    <h6>Set Realistic Budget</h6>
+                                    <p class="text-muted small">Your budget helps AI suggest activities and accommodations that fit your financial plan.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <i class="bi bi-check-circle text-success me-3 mt-1"></i>
+                                <div>
+                                    <h6>Be Specific</h6>
+                                    <p class="text-muted small">Add special requirements for more personalized itinerary suggestions.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <div class="card border-primary">
+                <div class="card-body py-5">
+                    <h3 class="text-primary mb-3">Ready to Create Your Perfect Trip?</h3>
+                    <p class="text-muted mb-4">Let our AI craft a personalized itinerary just for you.</p>
+                    <a href="{% url 'create_itinerary' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-magic me-2"></i>Create Custom Itinerary
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.destination-card:hover,
+.trip-type-card:hover,
+.budget-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.destination-card .card-body,
+.trip-type-card .card-body,
+.budget-card .card-body {
+    transition: background-color 0.3s ease;
+}
+
+.destination-card:hover .card-body,
+.trip-type-card:hover .card-body,
+.budget-card:hover .card-body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.destination-card:hover .text-muted,
+.trip-type-card:hover .text-muted,
+.budget-card:hover .text-muted {
+    color: rgba(255,255,255,0.8) !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth hover effects
+    const cards = document.querySelectorAll('.destination-card, .trip-type-card, .budget-card');
+    
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        });
+    });
+});
+</script>
+{% endblock %}

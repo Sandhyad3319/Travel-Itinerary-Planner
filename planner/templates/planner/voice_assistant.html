@@ -1,0 +1,208 @@
+{% extends 'planner/base.html' %}
+{% load static %}
+
+{% block title %}AI Travel Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <div class="text-center mb-4">
+                <h1 class="fw-bold text-primary">🎤 AI Travel Companion</h1>
+                <p class="text-muted">Speak naturally about your travel plans</p>
+
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <button id="start-conversation" class="btn btn-success btn-lg">▶ Start</button>
+                    <button id="stop-conversation" class="btn btn-danger btn-lg" disabled>⏹ Stop</button>
+                    <button id="reset-conversation" class="btn btn-secondary btn-lg">🔄 Reset</button>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    Live Conversation
+                </div>
+                <div class="card-body" id="conversation-container" style="height:400px;overflow-y:auto;background:#f8f9fa">
+                    <div class="assistant-message mb-3">
+                        <div class="message-bubble assistant-bubble">
+                            👋 Hello! Click start and tell me about your trip.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">Trip Summary</div>
+                <div class="card-body" id="trip-summary">
+                    <p class="text-muted">No trip planned yet.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+.message-bubble {
+    padding: 14px 18px;
+    border-radius: 18px;
+    max-width: 75%;
+}
+.assistant-bubble {
+    background: #ffffff;
+    border: 1px solid #ddd;
+}
+.user-bubble {
+    background: #4f46e5;
+    color: white;
+    margin-left: auto;
+}
+</style>
+
+<script>
+class RealTimeVoiceAssistant {
+    constructor() {
+        this.isListening = false;
+        this.isSpeaking = false;
+        this.lastUserText = "";
+        this.conversationStep = "welcome";
+        this.recognition = null;
+
+        this.startBtn = document.getElementById("start-conversation");
+        this.stopBtn = document.getElementById("stop-conversation");
+        this.resetBtn = document.getElementById("reset-conversation");
+        this.container = document.getElementById("conversation-container");
+        this.summary = document.getElementById("trip-summary");
+
+        this.initSpeech();
+        this.bindUI();
+    }
+
+    bindUI() {
+        this.startBtn.onclick = () => this.start();
+        this.stopBtn.onclick = () => this.stop();
+        this.resetBtn.onclick = () => this.reset();
+    }
+
+    initSpeech() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
+            alert("Use Chrome for voice features");
+            return;
+        }
+
+        this.recognition = new SR();
+        this.recognition.lang = "en-US";
+        this.recognition.continuous = true;
+        this.recognition.interimResults = false;
+
+        this.recognition.onresult = (e) => {
+            const text = e.results[e.results.length - 1][0].transcript.trim();
+            if (text.length < 3 || text === this.lastUserText) return;
+            this.lastUserText = text;
+            this.addMessage(text, "user");
+            this.sendToBackend(text);
+        };
+
+        this.recognition.onend = () => {
+            if (this.isListening && !this.isSpeaking) {
+                setTimeout(() => this.recognition.start(), 700);
+            }
+        };
+    }
+
+    start() {
+        this.isListening = true;
+        this.startBtn.disabled = true;
+        this.stopBtn.disabled = false;
+        this.recognition.start();
+        this.speak("Hi! Where would you like to travel?");
+    }
+
+    stop() {
+        this.isListening = false;
+        this.recognition.stop();
+        speechSynthesis.cancel();
+        this.startBtn.disabled = false;
+        this.stopBtn.disabled = true;
+    }
+
+    reset() {
+        this.stop();
+        this.container.innerHTML = "";
+        this.summary.innerHTML = "<p class='text-muted'>No trip planned yet.</p>";
+        this.conversationStep = "welcome";
+        this.lastUserText = "";
+    }
+
+    async sendToBackend(text) {
+        try {
+            const res = await fetch("{% url 'api_voice_process' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    text: text,
+                    conversation_step: this.conversationStep
+                })
+            });
+
+            const data = await res.json();
+            if (!data.success) throw "fail";
+
+            this.conversationStep = data.response.next_step;
+            this.addMessage(data.response.message, "assistant");
+            this.speak(data.response.message);
+            this.updateSummary(data.response.updated_data);
+
+        } catch {
+            const msg = "Got it. Can you tell me more?";
+            this.addMessage(msg, "assistant");
+            this.speak(msg);
+        }
+    }
+
+    speak(text) {
+        this.isSpeaking = true;
+        this.recognition.stop();
+
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "en-US";
+
+        u.onend = () => {
+            this.isSpeaking = false;
+            if (this.isListening) {
+                setTimeout(() => this.recognition.start(), 800);
+            }
+        };
+
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+    }
+
+    addMessage(text, who) {
+        const d = document.createElement("div");
+        d.className = who + "-message mb-3";
+        d.innerHTML = `<div class="message-bubble ${who}-bubble">${text}</div>`;
+        this.container.appendChild(d);
+        this.container.scrollTop = this.container.scrollHeight;
+    }
+
+    updateSummary(data) {
+        if (!data) return;
+        this.summary.innerHTML = Object.entries(data)
+            .map(([k,v]) => `<p><strong>${k}:</strong> ${v}</p>`)
+            .join("");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    window.voiceAssistant = new RealTimeVoiceAssistant();
+});
+</script>
+{% endblock %}

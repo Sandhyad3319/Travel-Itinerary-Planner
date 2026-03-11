@@ -1,0 +1,572 @@
+{% extends 'planner/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="card bg-gradient-primary text-white mb-4">
+        <div class="card-body text-center py-5">
+            <h1 class="display-5 fw-bold mb-3">Your Trip to {{ itinerary.destination }} is Ready! ✈️</h1>
+            <div class="row justify-content-center">
+                <div class="col-md-3">
+                    <h4>{{ itinerary.duration }} Days</h4>
+                    <small>Duration</small>
+                </div>
+                <div class="col-md-3">
+                    <h4>{{ itinerary.get_budget_display }}</h4>
+                    <small>Budget</small>
+                </div>
+                <div class="col-md-3">
+                    <h4>{{ itinerary.travelers }} People</h4>
+                    <small>Travelers</small>
+                </div>
+                <div class="col-md-3">
+                    <h4>${{ total_cost|floatformat:2 }}</h4>
+                    <small>Estimated Cost</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trip Details Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0"><i class="bi bi-info-circle me-2"></i>Trip Details</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Title:</strong> {{ itinerary.title }}</p>
+                    <p><strong>Destination:</strong> {{ itinerary.destination }}</p>
+                    <p><strong>Trip Type:</strong> {{ itinerary.get_trip_type_display }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Dates:</strong> {{ itinerary.start_date }} to {{ itinerary.end_date }}</p>
+                    <p><strong>Cost per Traveler:</strong> ${{ cost_per_traveler|floatformat:2 }}</p>
+                    {% if itinerary.special_requirements %}
+                    <p><strong>Special Requirements:</strong> {{ itinerary.special_requirements }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Type Distribution -->
+    {% if activity_types %}
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Activity Breakdown</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for type, count in activity_types.items %}
+                <div class="col-md-2 col-4 mb-2 text-center">
+                    <div class="p-3 border rounded">
+                        <h5 class="text-primary mb-1">{{ count }}</h5>
+                        <small class="text-muted">{{ type|title }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Daily Itinerary -->
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0"><i class="bi bi-calendar-week me-2"></i>Daily Itinerary</h4>
+        </div>
+        <div class="card-body">
+            {% for day in days %}
+            <div class="day-section mb-5">
+                <div class="day-header bg-light p-3 rounded mb-3">
+                    <h3 class="mb-1">Day {{ day.day_number }} - {{ day.date|date:"M d, Y" }}</h3>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-clock"></i> 
+                        {% with day.activities|length as activity_count %}
+                        {{ activity_count }} activit{{ activity_count|pluralize:"y,ies" }} planned
+                        {% endwith %}
+                        {% for daily_cost in daily_costs %}
+                            {% if daily_cost.day == day.day_number %}
+                            • Estimated cost: ${{ daily_cost.cost|floatformat:2 }}
+                            {% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+                
+                {% for activity in day.activities %}
+                <div class="activity-item mb-4 p-3 border rounded shadow-sm">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="time-badge bg-primary text-white text-center p-2 rounded">
+                                <strong>{{ activity.time }}</strong>
+                            </div>
+                        </div>
+                        
+                        <!-- Activity Image Column -->
+                        <div class="col-md-3">
+                            {% if activity.image_url %}
+                            <div class="activity-image mb-3">
+                                <img src="{{ activity.image_url }}" 
+                                     alt="{{ activity.activity }}"
+                                     class="img-fluid rounded shadow-sm"
+                                     style="max-height: 200px; width: 100%; object-fit: cover; cursor: pointer;"
+                                     onclick="openImageModal('{{ activity.image_url }}', '{{ activity.activity }}')"
+                                     onerror="this.src='https://picsum.photos/600/400?random={{ forloop.counter }}'">
+                                <div class="text-center mt-1">
+                                    <small class="text-muted">
+                                        <i class="bi bi-image"></i> {{ activity.location }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Activity Details Column -->
+                        <div class="col-md-4">
+                            <h5 class="activity-title mb-2">{{ activity.activity }}</h5>
+                            <p class="activity-description text-muted mb-2">
+                                {{ activity.description }}
+                            </p>
+                            
+                            <div class="activity-meta mb-2">
+                                <span class="badge bg-secondary me-2">
+                                    <i class="bi bi-geo-alt"></i> {{ activity.location }}
+                                </span>
+                                <span class="badge bg-info me-2">
+                                    {{ activity.type|title }}
+                                </span>
+                                {% if activity.children_friendly %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Child Friendly
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Additional Activity Details -->
+                            <div class="activity-details small text-muted">
+                                {% if activity.opening_hours %}
+                                <div class="mb-1">
+                                    <i class="bi bi-clock"></i> <strong>Hours:</strong> {{ activity.opening_hours }}
+                                </div>
+                                {% endif %}
+                                {% if activity.entrance_fee %}
+                                <div class="mb-1">
+                                    <i class="bi bi-ticket-perforated"></i> <strong>Fee:</strong> {{ activity.entrance_fee }}
+                                </div>
+                                {% endif %}
+                                {% if activity.best_time_to_visit %}
+                                <div class="mb-1">
+                                    <i class="bi bi-sun"></i> <strong>Best Time:</strong> {{ activity.best_time_to_visit }}
+                                </div>
+                                {% endif %}
+                                {% if activity.weather_note %}
+                                <div class="mb-1">
+                                    <i class="bi bi-cloud"></i> <strong>Weather:</strong> {{ activity.weather_note }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Cost & Actions Column -->
+                        <div class="col-md-3">
+                            <div class="activity-details">
+                                <div class="cost-estimate mb-2">
+                                    <strong class="h5 text-primary">
+                                        ${{ activity.cost_estimate|floatformat:2 }}
+                                    </strong>
+                                    <small class="text-muted d-block">Estimated Cost</small>
+                                </div>
+                                <div class="duration mb-2">
+                                    <i class="bi bi-clock"></i>
+                                    <strong>{{ activity.duration_minutes }} min</strong>
+                                </div>
+                                <div class="action-buttons">
+                                    <!-- Google Maps Links -->
+                                    <a href="https://www.google.com/maps/search/?api=1&query={{ activity.activity|urlencode }}+{{ activity.location|urlencode }}+{{ itinerary.destination|urlencode }}" 
+                                       target="_blank" class="btn btn-outline-primary btn-sm w-100 mb-2"
+                                       data-activity="{{ activity.activity }}"
+                                       data-location="{{ activity.location }}">
+                                        <i class="bi bi-map"></i> View on Maps
+                                    </a>
+                                    
+                                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ activity.activity|urlencode }}+{{ activity.location|urlencode }}+{{ itinerary.destination|urlencode }}" 
+                                       target="_blank" class="btn btn-outline-success btn-sm w-100 mb-2"
+                                       data-activity="{{ activity.activity }}">
+                                        <i class="bi bi-signpost"></i> Get Directions
+                                    </a>
+                                    
+                                    {% if activity.image_url %}
+                                    <button class="btn btn-outline-info btn-sm w-100 mb-2" 
+                                            onclick="openImageModal('{{ activity.image_url }}', '{{ activity.activity }}')">
+                                        <i class="bi bi-zoom-in"></i> Enlarge Image
+                                    </button>
+                                    {% endif %}
+                                    
+                                    {% if activity.best_photo_spots %}
+                                    <button class="btn btn-outline-warning btn-sm w-100" data-bs-toggle="tooltip" 
+                                            title="Best photo spots: {{ activity.best_photo_spots }}">
+                                        <i class="bi bi-camera"></i> Photo Tips
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tips Section -->
+                    {% if activity.tips %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="tips-section bg-warning bg-opacity-10 p-3 rounded">
+                                <strong><i class="bi bi-lightbulb"></i> Pro Tip:</strong>
+                                {{ activity.tips }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% empty %}
+            <div class="text-center py-4">
+                <i class="bi bi-calendar-x display-4 text-muted mb-3"></i>
+                <h4 class="text-muted">No activities planned yet</h4>
+                <p class="text-muted">Try regenerating the itinerary to get AI-powered suggestions.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-compass me-2"></i>Quick Navigation</h5>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-3 mb-2">
+                    <a href="https://www.google.com/maps/search/?api=1&query=hotels+in+{{ itinerary.destination|urlencode }}" 
+                       target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="bi bi-building"></i> Find Hotels
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="https://www.google.com/maps/search/?api=1&query=restaurants+in+{{ itinerary.destination|urlencode }}" 
+                       target="_blank" class="btn btn-outline-success btn-sm w-100">
+                        <i class="bi bi-egg-fried"></i> Find Restaurants
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="https://www.google.com/maps/search/?api=1&query=attractions+in+{{ itinerary.destination|urlencode }}" 
+                       target="_blank" class="btn btn-outline-info btn-sm w-100">
+                        <i class="bi bi-camera"></i> Find Attractions
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="https://www.google.com/maps/search/?api=1&query=transportation+in+{{ itinerary.destination|urlencode }}" 
+                       target="_blank" class="btn btn-outline-warning btn-sm w-100">
+                        <i class="bi bi-bus-front"></i> Transportation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-md-3 mb-2">
+            <form method="post" action="{% url 'regenerate_itinerary' itinerary.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning btn-lg w-100">
+                    <i class="bi bi-arrow-repeat me-2"></i>Regenerate
+                </button>
+            </form>
+        </div>
+        <div class="col-md-3 mb-2">
+            <form method="post" action="{% url 'duplicate_itinerary' itinerary.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-lg w-100">
+                    <i class="bi bi-files me-2"></i>Duplicate
+                </button>
+            </form>
+        </div>
+        <div class="col-md-3 mb-2">
+            <a href="{% url 'itinerary_list' %}" class="btn btn-secondary btn-lg w-100">
+                <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+        <div class="col-md-3 mb-2">
+            <form method="post" action="{% url 'delete_itinerary' itinerary.pk %}" 
+                  onsubmit="return confirm('Are you sure you want to delete this itinerary?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-lg w-100">
+                    <i class="bi bi-trash me-2"></i>Delete
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Print Button -->
+    <div class="text-center mt-4">
+        <button id="printItinerary" class="btn btn-outline-primary">
+            <i class="bi bi-printer me-2"></i>Print Itinerary
+        </button>
+    </div>
+
+    <!-- Cost Summary -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title text-center mb-4">
+                        <i class="bi bi-calculator me-2"></i>Cost Summary
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h3 class="text-primary">${{ total_cost|floatformat:2 }}</h3>
+                            <p class="text-muted">Total Estimated Cost</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-success">${{ cost_per_traveler|floatformat:2 }}</h3>
+                            <p class="text-muted">Cost per Traveler</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-info">{{ itinerary.duration }}</h3>
+                            <p class="text-muted">Days</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Location Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="" class="img-fluid rounded">
+                <p id="modalCaption" class="mt-2 text-muted"></p>
+            </div>
+            <div class="modal-footer">
+                <a id="downloadImage" href="#" class="btn btn-outline-primary" download>
+                    <i class="bi bi-download"></i> Download Image
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.day-header {
+    border-left: 4px solid #0dcaf0;
+}
+
+.time-badge {
+    min-width: 80px;
+}
+
+.activity-item {
+    transition: transform 0.2s ease;
+    border-left: 4px solid #198754;
+}
+
+.activity-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.tips-section {
+    border-left: 3px solid #ffc107;
+}
+
+.weather-section {
+    border-left: 3px solid #0dcaf0;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.activity-image img {
+    transition: transform 0.3s ease;
+}
+
+.activity-image img:hover {
+    transform: scale(1.05);
+}
+
+.action-buttons .btn {
+    margin-bottom: 5px;
+}
+
+/* Print Styles */
+@media print {
+    .btn, .action-buttons, .card-footer, .text-center.mt-4 {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    .activity-item {
+        break-inside: avoid;
+        border: 1px solid #ddd !important;
+    }
+    
+    .bg-gradient-primary {
+        background: #667eea !important;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    .bg-success, .bg-info, .bg-secondary {
+        -webkit-print-color-adjust: exact;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .time-badge {
+        margin-bottom: 10px;
+    }
+    
+    .activity-details.text-end {
+        text-align: left !important;
+        margin-top: 15px;
+    }
+    
+    .action-buttons {
+        text-align: center !important;
+    }
+    
+    .action-buttons .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .activity-image {
+        text-align: center;
+    }
+    
+    .activity-image img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Print functionality
+    document.getElementById('printItinerary').addEventListener('click', function() {
+        window.print();
+    });
+    
+    // Enhanced Google Maps functionality
+    const mapsLinks = document.querySelectorAll('a[href*="google.com/maps"]');
+    mapsLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const activity = this.getAttribute('data-activity');
+            const location = this.getAttribute('data-location');
+            
+            // Log the click for analytics (optional)
+            console.log('Maps link clicked:', {
+                activity: activity,
+                location: location,
+                href: this.href
+            });
+        });
+    });
+    
+    // Add smooth scrolling for better navigation
+    const dayHeaders = document.querySelectorAll('.day-header');
+    dayHeaders.forEach(header => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function() {
+            this.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+    
+    // Add confirmation for delete button
+    const deleteForm = document.querySelector('form[action*="delete"]');
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure you want to delete this itinerary? This action cannot be undone.')) {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    // Add copy to clipboard functionality for activity details
+    const activityTitles = document.querySelectorAll('.activity-title');
+    activityTitles.forEach(title => {
+        title.style.cursor = 'pointer';
+        title.title = 'Click to copy activity name';
+        title.addEventListener('click', function() {
+            const textToCopy = this.textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Show temporary feedback
+                const originalText = this.textContent;
+                this.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 2000);
+            });
+        });
+    });
+});
+
+// Image modal functionality
+function openImageModal(imageUrl, title) {
+    const modalImage = document.getElementById('modalImage');
+    const modalCaption = document.getElementById('modalCaption');
+    const downloadLink = document.getElementById('downloadImage');
+    const modalLabel = document.getElementById('imageModalLabel');
+    
+    modalImage.src = imageUrl;
+    modalImage.alt = title;
+    modalCaption.textContent = title;
+    modalLabel.textContent = title;
+    downloadLink.href = imageUrl;
+    downloadLink.download = `${title.replace(/\s+/g, '_')}.jpg`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+
+// Optional: Function to track Google Maps clicks (for analytics)
+function trackGoogleMapsClick(activity, location) {
+    // Example using Google Analytics
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'maps_click', {
+            'event_category': 'engagement',
+            'event_label': activity,
+            'value': 1
+        });
+    }
+}
+</script>
+{% endblock %}

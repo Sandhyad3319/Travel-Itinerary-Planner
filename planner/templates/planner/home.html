@@ -1,0 +1,171 @@
+{% extends 'planner/base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-4">AI-Powered Travel Planning</h1>
+        <p class="lead mb-4">Let artificial intelligence create the perfect travel itinerary tailored to your preferences, budget, and travel style.</p>
+        
+        {% if user.is_authenticated %}
+            <a href="{% url 'create_itinerary' %}" class="btn btn-light btn-lg me-3">
+                Create New Itinerary
+            </a>
+            <a href="{% url 'itinerary_list' %}" class="btn btn-outline-light btn-lg">
+                View My Itineraries
+            </a>
+        {% else %}
+            <!-- CHANGED: Now goes to custom login page, not admin -->
+            <a href="{% url 'login' %}" class="btn btn-light btn-lg me-3">
+                Login to Get Started
+            </a>
+            <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg">
+                Create Free Account
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col">
+            <h2 class="fw-bold">Why Use AI Travel Planner?</h2>
+            <p class="text-muted">Smart features that make travel planning effortless</p>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <svg width="48" height="48" fill="currentColor" class="text-primary" viewBox="0 0 16 16">
+                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title">AI-Powered Suggestions</h5>
+                    <p class="card-text text-muted">Get personalized itinerary recommendations based on your preferences, budget, and travel style using advanced AI algorithms.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <svg width="48" height="48" fill="currentColor" class="text-primary" viewBox="0 0 16 16">
+                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm4 4H6v3h4V8z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title">Smart Budgeting</h5>
+                    <p class="card-text text-muted">Plan according to your budget with automatic cost estimations and recommendations for budget-friendly alternatives.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <svg width="48" height="48" fill="currentColor" class="text-primary" viewBox="0 0 16 16">
+                            <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title">Time-Optimized</h5>
+                    <p class="card-text text-muted">Efficient scheduling that considers travel time, opening hours, and optimal routes to maximize your experience.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col">
+                <h2 class="fw-bold">How It Works</h2>
+                <p class="text-muted">Create your perfect itinerary in 3 simple steps</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <span class="h4 mb-0 text-primary">1</span>
+                </div>
+                <h5>Tell Us Your Preferences</h5>
+                <p class="text-muted">Enter your destination, travel dates, budget, and what type of experience you're looking for.</p>
+            </div>
+            
+            <div class="col-md-4 text-center">
+                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <span class="h4 mb-0 text-primary">2</span>
+                </div>
+                <h5>AI Generates Your Itinerary</h5>
+                <p class="text-muted">Our AI analyzes your preferences and creates a detailed, personalized travel plan.</p>
+            </div>
+            
+            <div class="col-md-4 text-center">
+                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <span class="h4 mb-0 text-primary">3</span>
+                </div>
+                <h5>Refine and Travel</h5>
+                <p class="text-muted">Review your itinerary, make adjustments if needed, and you're ready to explore!</p>
+            </div>
+        </div>
+        
+        {% if not user.is_authenticated %}
+        <div class="row mt-5">
+            <div class="col text-center">
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                    Start Planning Now
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Testimonials Section -->
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col">
+            <h2 class="fw-bold">What Travelers Say</h2>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <p class="card-text">"The AI itinerary planner saved me hours of research and created a perfect 7-day Japan trip that matched my interests perfectly!"</p>
+                    <footer class="blockquote-footer mt-3">Sarah M.</footer>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <p class="card-text">"I was skeptical about AI planning, but the suggestions were spot-on. Discovered hidden gems I would have never found on my own."</p>
+                    <footer class="blockquote-footer mt-3">James L.</footer>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <p class="card-text">"As a frequent traveler, this tool has become indispensable. The budget tracking and time optimization features are incredible."</p>
+                    <footer class="blockquote-footer mt-3">Maria K.</footer>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NO FOOTER HERE - IT'S ALREADY IN base.html -->
+{% endblock %}
